@@ -2,89 +2,92 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SRD 2026 | Workshop Request</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SRD 2026 | Workshop</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { overflow: hidden; } /* Prevent page bounce */
+        .custom-vh { height: calc(100vh - 70px); } /* Viewport minus header */
+        .scroll-hide::-webkit-scrollbar { width: 5px; }
+        .scroll-hide::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
 </head>
-<body class="bg-slate-50 font-sans text-slate-900">
+<body class="bg-slate-100 font-sans text-slate-900">
 
-    <div id="nav-bar" class="hidden bg-white border-b border-slate-200 px-8 py-4 flex justify-between items-center sticky top-0 z-50">
-        <div class="flex items-center gap-4">
-            <div class="bg-indigo-600 text-white p-2 rounded-lg font-black text-xs shadow-lg shadow-indigo-200">SRD</div>
+    <header id="nav-bar" class="hidden h-[70px] bg-white border-b border-slate-200 px-6 flex justify-between items-center shadow-sm">
+        <div class="flex items-center gap-3">
+            <div class="bg-indigo-600 text-white p-2 rounded-lg font-black text-xs">SRD</div>
             <div>
                 <p id="user-display" class="font-bold text-slate-800 text-xs leading-none"></p>
-                <p class="text-[9px] font-black uppercase text-indigo-500 mt-1 tracking-widest">Workshop Personnel</p>
+                <p class="text-[9px] font-black uppercase text-indigo-500 mt-1">Workshop Portal</p>
             </div>
         </div>
-        <button id="logout-btn" class="text-[10px] font-black text-red-500 uppercase border border-red-100 px-4 py-2 rounded-xl hover:bg-red-50 transition">Sign Out</button>
-    </div>
+        <button id="logout-btn" class="text-[10px] font-black text-red-500 uppercase border border-red-100 px-4 py-2 rounded-xl">Sign Out</button>
+    </header>
 
-    <div id="login-container" class="flex items-center justify-center h-screen bg-slate-100">
-        <div class="bg-white p-10 rounded-[2.5rem] shadow-xl w-full max-w-md border border-slate-200">
-            <h2 class="text-2xl font-black text-slate-800 mb-6 text-center tracking-tight">Workshop Login</h2>
-            <div class="space-y-4">
-                <input type="email" id="login-email" placeholder="Email" class="w-full bg-slate-50 border border-slate-200 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
-                <input type="password" id="login-password" placeholder="Password" class="w-full bg-slate-50 border border-slate-200 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
-                <button id="login-btn" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-indigo-700 transition">Enter Portal</button>
+    <div id="login-container" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-100">
+        <div class="bg-white p-8 rounded-[2rem] shadow-2xl w-full max-w-sm border border-slate-200">
+            <h2 class="text-xl font-black text-slate-800 mb-6 text-center tracking-tight">Workshop Login</h2>
+            <div class="space-y-3">
+                <input type="email" id="login-email" placeholder="Email" class="w-full bg-slate-50 border border-slate-200 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500">
+                <input type="password" id="login-password" placeholder="Password" class="w-full bg-slate-50 border border-slate-200 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500">
+                <button id="login-btn" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg">Sign In</button>
             </div>
         </div>
     </div>
 
-    <div id="app-container" class="hidden max-w-6xl mx-auto p-8">
+    <main id="app-container" class="hidden flex flex-col md:flex-row custom-vh overflow-hidden">
         
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <aside class="w-full md:w-80 lg:w-96 bg-white border-r border-slate-200 flex flex-col">
+            <div class="p-4 border-b border-slate-100 space-y-3">
+                <h3 class="font-black text-slate-400 uppercase text-[10px] tracking-widest">Master Inventory</h3>
+                <input type="text" id="mat-search" placeholder="Search items..." class="w-full bg-slate-100 p-3 rounded-xl border-none outline-none text-sm focus:ring-2 focus:ring-indigo-500">
+            </div>
             
-            <div class="lg:col-span-1 space-y-4">
-                <div class="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm">
-                    <h3 class="font-black text-slate-800 uppercase text-xs mb-4 tracking-widest">Inventory Search</h3>
-                    <input type="text" id="mat-search" placeholder="Type name or ID..." class="w-full bg-slate-50 p-4 rounded-2xl border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none mb-2">
-                    <button id="show-all-btn" class="text-[10px] font-bold text-indigo-600 hover:underline">Show All Items</button>
-                    
-                    <div id="search-results" class="mt-4 space-y-2 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
-                        </div>
+            <div id="search-results" class="flex-1 overflow-y-auto scroll-hide p-2 space-y-1">
+                <div class="p-10 text-center text-slate-300 text-xs italic">Loading database...</div>
+            </div>
+        </aside>
+
+        <section class="flex-1 bg-slate-50 flex flex-col overflow-hidden">
+            <div class="p-6 bg-white border-b border-slate-200 grid grid-cols-2 gap-4">
+                <div class="space-y-1">
+                    <label class="text-[9px] font-black text-slate-400 uppercase">PRF Number</label>
+                    <input type="text" id="prf-no" placeholder="e.g. 2026-001" class="w-full bg-slate-50 p-3 rounded-xl border border-slate-200 outline-none text-sm">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[9px] font-black text-slate-400 uppercase">SR / Work Order</label>
+                    <input type="text" id="sr-no" placeholder="e.g. SR-99" class="w-full bg-slate-50 p-3 rounded-xl border border-slate-200 outline-none text-sm">
                 </div>
             </div>
 
-            <div class="lg:col-span-2 space-y-6">
-                <div class="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm">
-                    <h2 class="text-2xl font-black text-slate-800 mb-6">Create Requisition</h2>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                        <div class="space-y-1">
-                            <label class="text-[10px] font-black text-slate-400 uppercase ml-2">PRF Number</label>
-                            <input type="text" id="prf-no" placeholder="e.g. PRF-101" class="w-full bg-slate-50 p-4 rounded-2xl border-none ring-1 ring-slate-200 outline-none">
-                        </div>
-                        <div class="space-y-1">
-                            <label class="text-[10px] font-black text-slate-400 uppercase ml-2">SR / WO Number</label>
-                            <input type="text" id="sr-no" placeholder="e.g. SR-505" class="w-full bg-slate-50 p-4 rounded-2xl border-none ring-1 ring-slate-200 outline-none">
-                        </div>
+            <div class="flex-1 overflow-y-auto scroll-hide p-6">
+                <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase border-b border-slate-200">
+                            <tr>
+                                <th class="p-4">Selected Material</th>
+                                <th class="p-4 w-24">Qty</th>
+                                <th class="p-4 w-12"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="basket-body" class="divide-y divide-slate-100"></tbody>
+                    </table>
+                    <div id="empty-msg" class="p-20 text-center text-slate-300 italic text-xs">
+                        No items added. Click on items from the left list.
                     </div>
-
-                    <div class="overflow-hidden border border-slate-100 rounded-2xl mb-6">
-                        <table class="w-full text-left bg-white">
-                            <thead class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase">
-                                <tr>
-                                    <th class="p-4">Material</th>
-                                    <th class="p-4 w-32">Req. Qty</th>
-                                    <th class="p-4 w-16 text-right"></th>
-                                </tr>
-                            </thead>
-                            <tbody id="basket-body" class="divide-y divide-slate-50">
-                                </tbody>
-                        </table>
-                        <div id="empty-msg" class="p-12 text-center text-slate-300 italic text-sm">
-                            Add items from the inventory list to start.
-                        </div>
-                    </div>
-
-                    <button id="submit-request" class="w-full bg-emerald-600 text-white font-black py-5 rounded-2xl shadow-xl shadow-emerald-100 hover:bg-emerald-700 transition active:scale-95">
-                        Submit Request to Inventory Team
-                    </button>
                 </div>
             </div>
 
-        </div>
-    </div>
+            <div class="p-6 bg-white border-t border-slate-200 shadow-[0_-4px_10px_rgba(0,0,0,0.02)]">
+                <button id="submit-request" class="w-full bg-emerald-600 text-white font-black py-4 rounded-2xl shadow-xl hover:bg-emerald-700 transition active:scale-95 flex justify-center items-center gap-2">
+                    <span>Submit to Inventory</span>
+                    <span id="basket-count" class="bg-emerald-800 px-2 py-0.5 rounded-lg text-[10px]">0</span>
+                </button>
+            </div>
+        </section>
+
+    </main>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
@@ -98,8 +101,7 @@
             databaseURL: "https://srdprf-2026-default-rtdb.firebaseio.com/",
             storageBucket: "srdprf-2026.firebasestorage.app",
             messagingSenderId: "736052583789",
-            appId: "1:736052583789:web:5828ad0e5beb3b15218e64",
-            measurementId: "G-J93X3PVNL4"
+            appId: "1:736052583789:web:5828ad0e5beb3b15218e64"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -109,20 +111,19 @@
         let masterInventory = [];
         let basket = [];
 
-        // --- AUTH CHECK ---
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 const emailKey = user.email.toLowerCase().replace(/\./g, ',');
                 const snap = await get(ref(db, 'authorized_emails/' + emailKey));
                 
-                if (snap.exists() && snap.val().role === 'workshop') {
+                if (snap.exists() && (snap.val().role === 'workshop' || snap.val().role === 'admin')) {
                     document.getElementById('login-container').classList.add('hidden');
                     document.getElementById('nav-bar').classList.remove('hidden');
                     document.getElementById('app-container').classList.remove('hidden');
                     document.getElementById('user-display').innerText = user.email;
                     loadInventory();
                 } else {
-                    alert("Unauthorized. Workshop access only.");
+                    alert("Unauthorized Email.");
                     signOut(auth);
                 }
             } else {
@@ -132,46 +133,47 @@
             }
         });
 
-        // --- INVENTORY LOGIC ---
         function loadInventory() {
             onValue(ref(db, 'inventory_list'), (snap) => {
                 masterInventory = [];
-                snap.forEach(c => masterInventory.push(c.val()));
-                displayResults(masterInventory); // Default: Show all on load
+                snap.forEach(c => {
+                    const data = c.val();
+                    // Unified mapping to prevent "not showing" errors
+                    masterInventory.push({
+                        ItemID: data.ItemID || data.id || 'N/A',
+                        ProductName: data.ProductName || data.productName || data.name || 'Unknown Item',
+                        Unit: data.Unit || data.unit || data.UOM || 'PCS'
+                    });
+                });
+                renderSearchResults(masterInventory);
             });
         }
 
-        function displayResults(list) {
+        function renderSearchResults(list) {
             const container = document.getElementById('search-results');
-            if (list.length === 0) {
-                container.innerHTML = '<p class="p-4 text-xs text-slate-400 italic">No materials found.</p>';
+            if (!list.length) {
+                container.innerHTML = '<p class="p-10 text-center text-slate-400 text-xs italic">No items found.</p>';
                 return;
             }
             container.innerHTML = list.map(item => `
-                <div onclick='addToBasket(${JSON.stringify(item)})' class="bg-slate-50 p-4 rounded-2xl border border-transparent hover:border-indigo-200 hover:bg-indigo-50 cursor-pointer transition group">
-                    <div class="font-bold text-slate-800 text-sm group-hover:text-indigo-600 transition">${item.ProductName}</div>
-                    <div class="flex justify-between mt-1">
+                <div onclick='addToBasket(${JSON.stringify(item)})' class="p-3 rounded-xl hover:bg-indigo-50 border border-transparent hover:border-indigo-100 cursor-pointer transition group">
+                    <div class="font-bold text-slate-700 text-sm leading-tight">${item.ProductName}</div>
+                    <div class="flex justify-between items-center mt-1">
                         <span class="text-[10px] font-mono text-slate-400">${item.ItemID}</span>
-                        <span class="text-[10px] font-black text-slate-500 uppercase">${item.Unit}</span>
+                        <span class="text-[9px] font-black text-indigo-400 uppercase">${item.Unit}</span>
                     </div>
                 </div>
             `).join('');
         }
 
         document.getElementById('mat-search').addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase();
+            const q = e.target.value.toLowerCase();
             const filtered = masterInventory.filter(i => 
-                i.ProductName.toLowerCase().includes(query) || i.ItemID.toString().includes(query)
+                i.ProductName.toLowerCase().includes(q) || i.ItemID.toString().toLowerCase().includes(q)
             );
-            displayResults(filtered);
+            renderSearchResults(filtered);
         });
 
-        document.getElementById('show-all-btn').addEventListener('click', () => {
-            document.getElementById('mat-search').value = '';
-            displayResults(masterInventory);
-        });
-
-        // --- BASKET LOGIC ---
         window.addToBasket = (item) => {
             if (basket.find(b => b.ItemID === item.ItemID)) return;
             basket.push({ ...item, qty: 1 });
@@ -181,70 +183,58 @@
         function renderBasket() {
             const tbody = document.getElementById('basket-body');
             const empty = document.getElementById('empty-msg');
+            const count = document.getElementById('basket-count');
             
-            if (basket.length === 0) {
-                tbody.innerHTML = '';
-                empty.classList.remove('hidden');
-                return;
-            }
+            count.innerText = basket.length;
+            if (!basket.length) { tbody.innerHTML = ''; empty.classList.remove('hidden'); return; }
             
             empty.classList.add('hidden');
             tbody.innerHTML = basket.map((item, idx) => `
                 <tr class="text-sm">
                     <td class="p-4">
-                        <div class="font-bold">${item.ProductName}</div>
+                        <div class="font-bold text-slate-800 leading-tight">${item.ProductName}</div>
                         <div class="text-[10px] text-slate-400 font-mono">${item.ItemID}</div>
                     </td>
                     <td class="p-4">
-                        <input type="number" value="${item.qty}" onchange="updateQty(${idx}, this.value)" class="w-full bg-slate-100 p-2 rounded-lg font-bold outline-none text-center">
+                        <input type="number" value="${item.qty}" onchange="updateQty(${idx}, this.value)" class="w-full bg-slate-50 p-2 rounded-lg border border-slate-200 font-bold text-center outline-none">
                     </td>
                     <td class="p-4 text-right">
-                        <button onclick="removeLine(${idx})" class="text-red-300 hover:text-red-500 transition">✕</button>
+                        <button onclick="removeLine(${idx})" class="text-red-300 hover:text-red-500 font-bold text-lg">×</button>
                     </td>
                 </tr>
             `).join('');
         }
 
-        window.updateQty = (idx, val) => basket[idx].qty = val;
+        window.updateQty = (idx, val) => { basket[idx].qty = val; };
         window.removeLine = (idx) => { basket.splice(idx, 1); renderBasket(); };
 
-        // --- SUBMISSION ---
         document.getElementById('submit-request').addEventListener('click', async () => {
-            const prfNo = document.getElementById('prf-no').value.trim();
-            const srNo = document.getElementById('sr-no').value.trim();
+            const prf = document.getElementById('prf-no').value;
+            if (!prf || !basket.length) return alert("Fill PRF# and add items.");
 
-            if (!prfNo || basket.length === 0) {
-                alert("Please provide PRF Number and add at least one material.");
-                return;
-            }
-
-            const payload = {
-                prfNo,
-                srNo,
+            const data = {
+                prfNo: prf,
+                srNo: document.getElementById('sr-no').value,
                 items: basket,
                 status: 'Pending',
                 createdBy: auth.currentUser.email,
                 timestamp: Date.now()
             };
 
-            try {
-                await push(ref(db, 'prfs'), payload);
-                alert("Request Sent Successfully!");
-                basket = [];
-                document.getElementById('prf-no').value = '';
-                document.getElementById('sr-no').value = '';
-                renderBasket();
-            } catch (e) {
-                alert("Error submitting: " + e.message);
-            }
+            await push(ref(db, 'prfs'), data);
+            alert("Request Submitted!");
+            basket = [];
+            document.getElementById('prf-no').value = '';
+            document.getElementById('sr-no').value = '';
+            renderBasket();
         });
 
-        // Login Actions
         document.getElementById('login-btn').addEventListener('click', () => {
-            const email = document.getElementById('login-email').value;
-            const pass = document.getElementById('login-password').value;
-            signInWithEmailAndPassword(auth, email, pass).catch(e => alert(e.message));
+            const e = document.getElementById('login-email').value;
+            const p = document.getElementById('login-password').value;
+            signInWithEmailAndPassword(auth, e, p).catch(err => alert(err.message));
         });
+
         document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
 
     </script>
