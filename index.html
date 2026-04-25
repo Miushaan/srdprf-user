@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRD 2026 | Staff Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 font-sans text-slate-900">
+
+    <div id="nav-bar" class="hidden bg-white border-b border-slate-200 px-8 py-4 flex justify-between items-center sticky top-0 z-50 shadow-sm">
+        <div class="flex items-center gap-4">
+            <div class="bg-indigo-600 text-white p-2 rounded-lg font-black text-xs">SRD</div>
+            <div class="flex flex-col">
+                <span id="user-display" class="font-bold text-slate-800 text-sm leading-none"></span>
+                <span id="role-badge" class="text-[9px] font-black uppercase tracking-tighter text-indigo-500 mt-1"></span>
+            </div>
+        </div>
+        <button id="logout-btn" class="text-xs font-black text-red-500 uppercase hover:bg-red-50 px-4 py-2 rounded-xl transition">Sign Out</button>
+    </div>
+
+    <div id="login-container" class="flex items-center justify-center h-screen bg-slate-100">
+        <div class="bg-white p-10 rounded-3xl shadow-xl w-full max-w-md border border-slate-200 text-center">
+            <h2 class="text-2xl font-black text-slate-800 mb-6">Staff Access</h2>
+            <div class="space-y-4">
+                <input type="email" id="login-email" placeholder="Email" class="w-full bg-slate-50 border border-slate-200 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500">
+                <input type="password" id="login-password" placeholder="Password" class="w-full bg-slate-50 border border-slate-200 p-4 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500">
+                <button id="login-btn" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-indigo-700 transition">Sign In</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-container" class="hidden max-w-5xl mx-auto p-8">
+        
+        <section id="workshop-view" class="space-y-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <h2 class="text-3xl font-black text-slate-800">New Requisition</h2>
+                <div class="relative flex-1 max-w-md">
+                    <input type="text" id="mat-search" placeholder="Search Item Name or ID..." class="w-full p-4 pl-12 rounded-2xl border-none ring-1 ring-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none shadow-sm font-medium">
+                    <span class="absolute left-4 top-4 opacity-30 text-xl">🔍</span>
+                    
+                    <div id="search-results" class="absolute w-full mt-2 bg-white shadow-2xl rounded-2xl border border-slate-200 hidden z-50 max-h-80 overflow-y-auto divide-y divide-slate-100">
+                        </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
+                <div class="p-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+                    <span class="text-xs font-black uppercase text-slate-400">Request Items List</span>
+                    <span id="items-count" class="bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full text-[10px] font-black">0 ITEMS</span>
+                </div>
+                <table class="w-full text-left">
+                    <thead class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase">
+                        <tr>
+                            <th class="p-6">Material</th>
+                            <th class="p-6">UOM</th>
+                            <th class="p-6 w-32">Qty</th>
+                            <th class="p-6 w-20"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="request-table-body" class="divide-y divide-slate-100">
+                        </tbody>
+                </table>
+                <div id="empty-state" class="p-20 text-center text-slate-400 italic">
+                    Search for materials above to add them to your request.
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+        import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCLdwgFDeZRPGg666z5Vm9ZGJ74QfsP1Hg",
+            authDomain: "srdprf-2026.firebaseapp.com",
+            projectId: "srdprf-2026",
+            databaseURL: "https://srdprf-2026-default-rtdb.firebaseio.com/",
+            storageBucket: "srdprf-2026.firebasestorage.app",
+            messagingSenderId: "736052583789",
+            appId: "1:736052583789:web:5828ad0e5beb3b15218e64",
+            measurementId: "G-J93X3PVNL4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        let masterData = [];
+        let basket = [];
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // Verify Role
+                const emailKey = user.email.toLowerCase().replace(/\./g, ',');
+                const snap = await get(ref(db, 'authorized_emails/' + emailKey));
+                
+                if (snap.exists()) {
+                    document.getElementById('login-container').classList.add('hidden');
+                    document.getElementById('nav-bar').classList.remove('hidden');
+                    document.getElementById('app-container').classList.remove('hidden');
+                    
+                    document.getElementById('user-display').innerText = user.email;
+                    document.getElementById('role-badge').innerText = snap.val().role;
+                    
+                    loadInventoryList();
+                } else {
+                    alert("No role assigned to this email.");
+                    signOut(auth);
+                }
+            } else {
+                document.getElementById('login-container').classList.remove('hidden');
+                document.getElementById('app-container').classList.add('hidden');
+                document.getElementById('nav-bar').classList.add('hidden');
+            }
+        });
+
+        // 1. Fetch entire inventory into memory for fast searching
+        function loadInventoryList() {
+            onValue(ref(db, 'inventory_list'), (snap) => {
+                masterData = [];
+                snap.forEach(c => masterData.push(c.val()));
+            });
+        }
+
+        // 2. SEARCH LOGIC
+        document.getElementById('mat-search').addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const resultsBox = document.getElementById('search-results');
+
+            if (query.length < 1) {
+                resultsBox.classList.add('hidden');
+                return;
+            }
+
+            // Filter by Name or ID
+            const filtered = masterData.filter(item => 
+                (item.ProductName && item.ProductName.toLowerCase().includes(query)) || 
+                (item.ItemID && item.ItemID.toString().includes(query))
+            ).slice(0, 8); // Top 8 results
+
+            if (filtered.length > 0) {
+                resultsBox.innerHTML = filtered.map(item => `
+                    <div class="p-4 hover:bg-indigo-50 cursor-pointer flex justify-between items-center group transition" 
+                         onclick='addToBasket(${JSON.stringify(item)})'>
+                        <div>
+                            <div class="font-bold text-slate-800 text-sm">${item.ProductName}</div>
+                            <div class="text-[10px] text-slate-400 font-mono tracking-wider">${item.ItemID}</div>
+                        </div>
+                        <div class="text-[10px] font-black text-indigo-400 uppercase bg-indigo-50 px-2 py-1 rounded group-hover:bg-indigo-100">${item.Unit || 'PCS'}</div>
+                    </div>
+                `).join('');
+                resultsBox.classList.remove('hidden');
+            } else {
+                resultsBox.innerHTML = '<div class="p-4 text-xs text-slate-400 italic">No matches found...</div>';
+                resultsBox.classList.remove('hidden');
+            }
+        });
+
+        // 3. SELECTION LOGIC
+        window.addToBasket = (item) => {
+            if (basket.find(i => i.ItemID === item.ItemID)) return alert("Item already added.");
+            
+            basket.push({ ...item, reqQty: 1 });
+            document.getElementById('search-results').classList.add('hidden');
+            document.getElementById('mat-search').value = '';
+            renderTable();
+        };
+
+        function renderTable() {
+            const tbody = document.getElementById('request-table-body');
+            const empty = document.getElementById('empty-state');
+            const count = document.getElementById('items-count');
+
+            if (basket.length === 0) {
+                tbody.innerHTML = '';
+                empty.classList.remove('hidden');
+                count.innerText = "0 ITEMS";
+                return;
+            }
+
+            empty.classList.add('hidden');
+            count.innerText = `${basket.length} ITEMS`;
+            
+            tbody.innerHTML = basket.map((item, index) => `
+                <tr class="hover:bg-slate-50/50 transition">
+                    <td class="p-6">
+                        <div class="font-bold text-slate-800">${item.ProductName}</div>
+                        <div class="text-[10px] text-slate-400 font-mono">${item.ItemID}</div>
+                    </td>
+                    <td class="p-6 text-xs font-black text-slate-500 uppercase">${item.Unit || 'PCS'}</td>
+                    <td class="p-6">
+                        <input type="number" value="${item.reqQty}" 
+                               onchange="updateBasketQty(${index}, this.value)"
+                               class="w-full bg-slate-50 p-2 rounded-lg border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-center">
+                    </td>
+                    <td class="p-6 text-right">
+                        <button onclick="removeFromBasket(${index})" class="text-slate-300 hover:text-red-500 transition text-lg">🗑</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        window.updateBasketQty = (idx, val) => basket[idx].reqQty = val;
+        window.removeFromBasket = (idx) => { basket.splice(idx, 1); renderTable(); };
+
+        // Sign In/Out
+        document.getElementById('login-btn').addEventListener('click', () => {
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-password').value;
+            signInWithEmailAndPassword(auth, email, pass).catch(e => alert(e.message));
+        });
+        document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
+
+    </script>
+</body>
+</html>
